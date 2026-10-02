@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>starist</title>
+
+<link rel="icon" type="image/png" href="images/Y2k-Star-PNG-Photo (1).png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pirata+One&display=swap" rel="stylesheet">
+
+<style>
+    /* GLOBAL STYLES */
+    * { cursor: none !important; }
+
+    html, body {
+        margin: 0; width: 100%; height: 100%;
+        overflow: hidden; background: #000;
+        position: relative; font-family: 'Pirata One', system-ui, sans-serif;
+    }
+
+    body.initial { 
+        background: url('images/wallpaper.jpg') no-repeat center center; 
+        background-size: cover;
+    }
+    body.darken { background: #000000 !important; }
+
+    /* LOGIN SYSTEM STYLES */
+    #psInitial {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        width: 100%; height: 100%; transition: opacity 0.8s ease;
+        background: rgba(0,0,0,0.6); z-index: 1000; position: absolute;
+    }
+
+    .click-text {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 28px; letter-spacing: 3px;
+        position: absolute; top: 20%;
+        animation: breathe 2.5s infinite ease-in-out;
+        text-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
+
+    .central-star {
+        width: 90px; height: 90px; background: white;
+        clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        box-shadow: 0 0 50px rgba(255,255,255,0.6);
+        animation: rotateStar 10s infinite linear;
+    }
+
+    #psLoginScreen {
+        display: none; position: absolute; inset: 0;
+        flex-direction: column; align-items: center; justify-content: center;
+        opacity: 0; transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 100%; overflow: hidden; z-index: 900;
+    }
+
+    .ps5-header { text-align: center; margin-bottom: 50px; z-index: 10; }
+    .ps5-header h1 { font-size: 52px; margin: 0; color: white; letter-spacing: 2px; }
+    .ps5-header h2 { font-size: 20px; color: rgba(255,255,255,0.4); margin: 10px 0 0 0; }
+
+    .carousel-view {
+        position: relative; width: 100%; height: 450px;
+        display: flex; justify-content: center; align-items: center;
+    }
+
+    .profile-list { 
+        display: flex; align-items: center;
+        transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+        will-change: transform; position: absolute; left: 50%;
+    }
+
+    .profile-item {
+        display: flex; flex-direction: column; align-items: center; gap: 15px;
+        transition: all 0.5s ease; opacity: 0.1; 
+        transform: translateX(-50%) scale(0.6); width: 260px; flex-shrink: 0;
+    }
+
+    .profile-item.selected { opacity: 1; transform: translateX(-50%) scale(1.1); }
+
+    .profile-circle {
+        width: 160px; height: 160px; border-radius: 50%;
+        background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1);
+        display: flex; justify-content: center; align-items: center;
+        transition: all 0.4s ease; overflow: hidden;
+        backdrop-filter: blur(5px);
+    }
+
+    .profile-circle .star-icon {
+        width: 80px; height: 80px; background: rgba(255,255,255,0.8);
+        clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    }
+
+    .pfp-img { width: 100%; height: 100%; object-fit: cover; }
+
+    .profile-item.selected .profile-circle {
+        border-color: white;
+        box-shadow: 0 0 40px rgba(255,255,255,0.3), inset 0 0 20px rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.15);
+    }
+
+    .profile-name { font-size: 34px; color: white; opacity: 0; transform: translateY(10px); transition: all 0.4s ease; text-align: center;}
+    .profile-item.selected .profile-name { opacity: 1; transform: translateY(0); }
+
+    .role-tag { font-size: 16px; display: block; margin-top: -5px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
+    .yahir-name { color: #ff3131 !important; }
+
+    #passcodeScreen {
+        display: none; position: absolute; inset: 0;
+        flex-direction: column; align-items: center; justify-content: center;
+        gap: 40px; opacity: 0; transition: opacity 0.8s ease; z-index: 800;
+    }
+
+    .pass-container {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        padding: 60px 80px;
+        border-radius: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 60px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .pass-user-circle {
+        width: 160px; height: 160px; border-radius: 50%;
+        overflow: hidden; border: 2px solid white; display: flex; 
+        justify-content: center; align-items: center;
+    }
+
+    #passField {
+        background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2);
+        color: white; font-family: 'Pirata One'; font-size: 36px;
+        padding: 15px 25px; border-radius: 12px; width: 300px; text-align: center;
+        outline: none; transition: border-color 0.3s;
+    }
+
+    /* MAIN CONTENT SLIDE STYLES */
+    .slide {
+        position: absolute; inset: 0;
+        display: flex; justify-content: center; align-items: center;
+        transition: opacity 1.2s ease, visibility 1.2s;
+        opacity: 0; visibility: hidden; pointer-events: none; z-index: 1;
+    }
+
+    .slide.active { opacity: 1; visibility: visible; pointer-events: all; z-index: 2; }
+
+    #userDisplay {
+        position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
+        color: rgba(255, 255, 255, 0.9); font-size: 26px; z-index: 10;
+        letter-spacing: 2px; opacity: 0; transition: opacity 1s ease;
+    }
+
+    #instructionText {
+        position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+        color: rgba(255, 255, 255, 0.6); font-size: 20px; z-index: 10;
+        opacity: 0; transition: opacity 0.8s ease; pointer-events: none;
+    }
+
+    h1 {
+        font-size: 42px; letter-spacing: 3px; color: #ffffff;
+        text-shadow: 0 0 25px rgba(255,255,255,0.9); text-transform: uppercase;
+    }
+
+    .menu-content {
+        text-align: left; width: 85%; max-width: 650px;
+        display: flex; flex-direction: column; gap: 12px;
+    }
+
+    .menu-header {
+        color: white; font-size: 36px; text-transform: uppercase;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+        padding-bottom: 10px; margin-bottom: 5px;
+    }
+
+    .project-link {
+        color: #00ffff; font-size: 26px; text-decoration: underline;
+        transition: color 0.3s, transform 0.2s; display: inline-block; pointer-events: all;
+    }
+
+    .project-link:hover { color: #ffffff; transform: translateX(5px); }
+
+    .status-msg { color: #ff4444; font-size: 24px; letter-spacing: 1px; }
+
+    /* UI CONTROLS */
+    .footer-controls {
+        position: fixed; bottom: 40px; left: 50%;
+        transform: translateX(-50%); display: none;
+        flex-direction: column; align-items: center; gap: 15px; z-index: 1000;
+    }
+
+    .request-pfp-btn {
+        background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+        color: white; text-decoration: none; padding: 8px 24px; border-radius: 20px;
+        font-size: 16px; transition: all 0.3s ease; backdrop-filter: blur(5px);
+    }
+    .request-pfp-btn:hover { background: white; color: black; transform: scale(1.05); }
+
+    .esc-text { color: rgba(255, 255, 255, 0.3); font-size: 14px; letter-spacing: 2px; }
+
+    .cursor-btn {
+        position: absolute; bottom: 30px; right: 30px;
+        font-family: 'Pirata One'; font-size: 20px; padding: 12px 25px; border-radius: 15px;
+        border: none; background: rgba(0,0,0,0.4); color: white; backdrop-filter: blur(10px);
+        z-index: 100; display: none; 
+    }
+
+    /* MODALS */
+    .modal { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+    .modal.active { opacity: 1; pointer-events: all; backdrop-filter: blur(20px); }
+    .modal-box { position: relative; background: rgba(15,15,15,0.95); padding: 40px; border-radius: 30px; width: 320px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+    .cursor-modal-box { width: 850px; border-radius: 50px; }
+    
+    .close-x { position: absolute; top: 15px; right: 20px; color: white; font-size: 24px; cursor: pointer; transition: color 0.2s; }
+    .close-x:hover { color: #ff4444; }
+
+    .changelog-content { 
+        color: white; text-align: center; font-size: 18px; margin-top: 15px; line-height: 1.4;
+        max-height: 300px; overflow-y: auto; padding-right: 10px;
+    }
+
+    /* CURSOR */
+    #cursorStar {
+        position: fixed; width: 35px; height: 35px; pointer-events: none; z-index: 10000001;
+        background-size: contain; background-repeat: no-repeat; background-position: center;
+    }
+    #cursorStar.default-star::before {
+        content: ""; position: absolute; inset: 0; background: white; 
+        clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        filter: drop-shadow(0 0 5px #fff);
+    }
+    #cursorDot { 
+        position: fixed; width: 8px; height: 8px; background: white; border-radius: 50%; 
+        pointer-events: none; z-index: 10000002; box-shadow: 0 0 12px #fff; transform: translate(-50%, -50%);
+    }
+
+    .upload-container { display: flex; align-items: center; justify-content: center; gap: 25px; margin: 30px 0; flex-wrap: wrap; }
+    .btn-upload { border: 2px dashed rgba(255,255,255,0.3); color: white; background: transparent; padding: 12px 20px; border-radius: 15px; font-family: 'Pirata One'; }
+    .preset-preview { width: 70px; height: 70px; object-fit: contain; transition: transform 0.2s; }
+    .preset-preview:hover { transform: scale(1.2); }
+
+    @keyframes breathe { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    @keyframes rotateStar { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+</head>
+<body class="initial" onclick="handleGlobalClick(event)" oncontextmenu="handleBackNavigation(event)">
+
+<div id="userDisplay"></div>
+<div id="welcomeMsg" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 48px; opacity: 0; z-index: 600; pointer-events: none; transition: opacity 1.2s ease; text-shadow: 0 0 20px rgba(255,255,255,0.5);"></div>
+<div id="instructionText">Click to go to the next slide</div>
+
+<div id="psInitial">
+    <div class="click-text">PRESS ANY BUTTON TO CONTINUE</div>
+    <div class="central-star"></div>
+</div>
+
+<div id="psLoginScreen">
+    <div class="ps5-header">
+        <h1>Welcome Back to Starist</h1>
+        <h2>use these keys →← and enter</h2>
+    </div>
+    <div class="carousel-view">
+        <div class="profile-list" id="profileList">
+            <div class="profile-item" data-name="Yahir">
+                <div class="profile-circle"><img src="https://static.wikia.nocookie.net/starist-gallary/images/f/f7/Wallpaper.jpg" class="pfp-img"></div>
+                <div class="profile-name yahir-name">Yahir<span class="role-tag">[headadmin]</span></div>
+            </div>
+            <div class="profile-item" data-name="John"><div class="profile-circle"><div class="star-icon"></div></div><div class="profile-name">John<span class="role-tag">[admin]</span></div></div>
+            <div class="profile-item" data-name="Eden"><div class="profile-circle"><div class="star-icon"></div></div><div class="profile-name">Eden<span class="role-tag">[admin]</span></div></div>
+            <div class="profile-item" data-name="Axel">
+                <div class="profile-circle"><img src="https://static.wikia.nocookie.net/starist-gallary/images/8/84/4255f3892d8f166238a1530f29ece0dc.jpg/revision/latest/scale-to-width-down/605?cb=20260427074307" class="pfp-img"></div>
+                <div class="profile-name">Axel</div>
+            </div>
+            <div class="profile-item" data-name="Diego"><div class="profile-circle"><div class="star-icon"></div></div><div class="profile-name">Diego</div></div>
+            <div class="profile-item" data-name="Anthony"><div class="profile-circle"><div class="star-icon"></div></div><div class="profile-name">Anthony</div></div>
+            <div class="profile-item" data-name="Miguel"><div class="profile-circle"><div class="star-icon"></div></div><div class="profile-name">Miguel</div></div>
+            <div class="profile-item" data-name="Jeremy"><div class="profile-circle"><div class="star-icon"></div></div><div class="profile-name">Jeremy</div></div>
+            <div class="profile-item" data-name="Daouda"><div class="profile-circle"><div class="star-icon"></div></div><div class="profile-name">Daouda</div></div>
+        </div>
+    </div>
+</div>
+
+<div id="passcodeScreen">
+    <div class="pass-container">
+        <div class="pass-user-info">
+            <div class="pass-user-circle" id="passUserCircle" style="width:160px; height:160px;"></div>
+            <div class="profile-name" id="displayActiveUser" style="opacity: 1; margin-top: 15px; text-align: center;">User</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="color:rgba(255,255,255,0.7); font-size: 24px;">Enter your passcode</div>
+            <input type="password" id="passField" autocomplete="off" placeholder="••••">
+            <div id="error" style="color:#ff4444; height: 20px; font-size: 18px;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="footer-controls" id="footerControls">
+    <a href="https://docs.google.com/presentation/d/1I91xNsoRMp5JvEglbKkM34cuDvvUoFtRCvwycS2ldLI/edit#slide=id.g3d98a5ccb51_0_11" target="_blank" class="request-pfp-btn" id="requestPfpBtn" style="display:none;">Request a pfp</a>
+    <div class="esc-text">CLICK ESC TO LEAVE</div>
+</div>
+
+<div id="slide1" class="slide"><h1 id="mainTitle">star</h1></div>
+<div id="slide2" class="slide">
+    <div class="menu-content">
+        <div class="menu-header">Try These</div>
+        <div class="project-link" onclick="openLink(event, 'https://drive.google.com/file/d/1DYoThEeR0rmqgnQ3wLMQfurq1rSolb0C/view?usp=drive_link')">Lemon v1</div>
+        <div id="lapisLink" class="project-link" style="display: none;" onclick="openLink(event, 'https://drive.google.com/file/d/1akxwyxB6FAiywSRWAk0DKdaF4aHHIwsq/view?usp=drive_link')">Lapis OS (not mine)</div>
+    </div>
+</div>
+<div id="slide3" class="slide"><div class="menu-content"><div class="menu-header">CHATROOM</div><div class="project-link" style="font-size: 40px;" onclick="openLink(event, 'https://docs.google.com/presentation/d/1zzTVrqebr41PdHHn5EJn1fvKb-ADCFGUJmFxMFjhATw/edit?slide=id.p#slide=id.p')">CHATROOM</div></div></div>
+<div id="slide4" class="slide">
+    <div class="menu-content">
+        <div class="menu-header">froggies arcade</div>
+        <div class="project-link" onclick="openLink(event, 'https://superdash4615.b-cdn.net/')">froggies arcade</div>
+    </div>
+</div>
+<div id="slide5" class="slide"><div class="menu-content"><div class="menu-header">NEO</div><div class="project-link" onclick="openLink(event, 'https://teto.asia')">NEO</div></div></div>
+<div id="slide6" class="slide"><div class="menu-content"><div class="menu-header">CLOUDMOON</div><div class="project-link" onclick="openLink(event, 'https://web.cloudmoonapp.com')">Cloudmoon</div></div></div>
+<div id="slide7" class="slide"><div class="menu-content"><div class="menu-header">UNIUB V4</div><div class="project-link" onclick="openLink(event, 'https://lord-justice.lol/#home')">uniub 1</div></div></div>
+<div id="slide8" class="slide"><div class="menu-content"><div class="menu-header">SELENITE</div><div class="project-link" onclick="openLink(event, 'https://texaslearning-81940.b-cdn.net/')">Selenite</div></div></div>
+<div id="slide9" class="slide"><div class="menu-content"><div class="menu-header">CINE</div><div class="project-link" onclick="openLink(event, 'https://cine-os-top.b-cdn.net')">CineOS</div></div></div>
+<div id="slide10" class="slide"><div class="menu-content"><div class="menu-header">studyhub</div><div class="project-link" onclick="openLink(event, 'https://high-cortisol.b-cdn.net/')">Studyhub</div></div></div>
+<div id="slide11" class="slide"><div class="menu-content"><div class="menu-header">DogeUB</div><div class="project-link" onclick="openLink(event, 'https://edu-gov-k12-school-learn-study.is-a.software.cdn.cloudflare.net/')">DogeUB</div></div></div>
+<div id="slide12" class="slide"><div class="menu-content"><div class="menu-header">Axiom</div><div class="project-link" onclick="openLink(event, 'https://arduinodictionary94.aabiskarkshetri.com.np/')">Axiom</div></div></div>
+<div id="slide13" class="slide">
+    <div class="menu-content">
+        <div class="menu-header">Nexora</div>
+        <div class="project-link" onclick="openLink(event, 'https://noterplusbunny1048.b-cdn.net/')">Nexora 1</div>
+        <div class="project-link" onclick="openLink(event, 'https://noterplusbunny2048.b-cdn.net/')">Nexora 2</div>
+        <div class="project-link" onclick="openLink(event, 'https://ryansite.b-cdn.net/')">Nexora 3</div>
+        <div class="project-link" onclick="openLink(event, 'https://noterplusbunny3428.b-cdn.net/')">Nexora 4</div>
+    </div>
+</div>
+<div id="slide14" class="slide">
+    <div class="menu-content">
+        <div class="menu-header">zodiac</div>
+        <div class="project-link" onclick="openLink(event, 'https://sites.google.com/view/psycholigy/home')">zodiac</div>
+    </div>
+</div>
+<div id="slide15" class="slide">
+    <div class="menu-content">
+        <div class="menu-header">fern</div>
+        <div class="project-link" onclick="openLink(event, 'https://s3.amazonaws.com/angelfern/index.html')">fern</div>
+    </div>
+</div>
+<div id="slide16" class="slide"><h1>Entertainment</h1></div>
+<div id="slide17" class="slide">
+    <div class="menu-content">
+        <div class="menu-header">Anime</div>
+        <div class="project-link" onclick="openLink(event, 'https://9animetv.to/')">9anime</div>
+        <div class="project-link" onclick="openLink(event, 'https://www.ramenflix.com/')">ramenflix</div>
+    </div>
+</div>
+<div id="slide18" class="slide">
+    <div class="menu-content">
+        <div class="menu-header">Movies</div>
+        <div class="project-link" onclick="openLink(event, 'https://streamwatch.online/')">STREAMWATCH</div>
+        <div class="project-link" onclick="openLink(event, 'https://fmhy.net/')">FMHY</div>
+    </div>
+</div>
+
+<div class="modal" id="changelogModal">
+    <div class="modal-box" style="width: 480px;">
+        <div class="close-x" onclick="closeModals()">X</div>
+        <h2 style="color:white; text-decoration: underline;">Changelog</h2>
+        <div class="changelog-content">
+            <h3>2.0 (BETA UNRELEASED)</h3>
+            <p>Added DogeUB proxy and updated Froggie link.</p>
+            <p>Cine and Froggie are probably back online.</p>
+            <p>New Proxies available (Zodiac, Fern, and others).</p>
+            <p>Axel profile picture updated.</p>
+            <div class="project-link" style="font-size: 28px;" onclick="openLink(event, 'https://docs.google.com/presentation/d/1zzTVrqebr41PdHHn5EJn1fvKb-ADCFGUJmFxMFjhATw/edit#slide=id.g3d542eb17b9_2_5')">Feedback</div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="cursorModal">
+    <div class="modal-box cursor-modal-box">
+        <h2 style="color:white; font-size:32px;">Change Cursor</h2>
+        <div class="upload-container">
+            <button class="btn-upload" onclick="document.getElementById('cursorUpload').click()">Upload</button>
+            <input type="file" id="cursorUpload" accept="image/png, image/gif" style="display:none;">
+            <img src="https://static.wikia.nocookie.net/fanloid/images/a/a6/Soldier_Teto.png" class="preset-preview" onclick="setPresetCursor(this.src)">
+            <img src="https://static.wikia.nocookie.net/character-stats-and-profiles/images/2/2b/Mark_Grayson_Invincible_.png" class="preset-preview" onclick="setPresetCursor(this.src)">
+            <img src="https://tr.rbxcdn.com/180DAY-42bc984de9ce93cd6814941a791d599f/420/420/WaistAccessory/Webp/noFilter" class="preset-preview" onclick="setPresetCursor(this.src)">
+        </div>
+        <button onclick="closeModals()" style="background:transparent; color:white; border:none; font-family:'Pirata One'; font-size:20px;">close</button>
+    </div>
+</div>
+
+<button class="cursor-btn" id="openCursorModal">Cursor Selection</button>
+
+<div id="cursorStar" class="default-star"></div>
+<div id="cursorDot"></div>
+
+<script>
+    let isUnlocked = false;
+    let currentView = 'initial'; 
+    let selectedIndex = 0;
+    let currentSlide = 1;
+    const TOTAL_USERS = 9;
+    const TOTAL_SLIDES = 18;
+
+    const roles = { 
+        "idkedmond":"Yahir", "decembr":"John", "timmytuffboy":"Eden", 
+        "xdlol":"Axel", "098":"Diego", "yay123":"Anthony", 
+        "234":"Miguel", "jejk":"Jeremy", "ke12":"Daouda"
+    };
+
+    const star = document.getElementById("cursorStar");
+    const dot = document.getElementById("cursorDot");
+    const passField = document.getElementById("passField");
+    const cursorBtn = document.getElementById("openCursorModal");
+
+    // CURSOR LOGIC
+    let mx = -100, my = -100, cx = -100, cy = -100, rot = 0;
+    window.addEventListener("mousemove", (e) => { mx = e.clientX; my = e.clientY; });
+
+    function loop() {
+        cx += (mx - cx) * 0.12; cy += (my - cy) * 0.12; rot += 1.5;
+        star.style.left = cx + 'px'; star.style.top = cy + 'px';
+        star.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
+        dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+        requestAnimationFrame(loop);
+    }
+    loop();
+
+    // LOGIN NAVIGATION
+    function updateCarousel() {
+        const list = document.getElementById('profileList');
+        const items = document.querySelectorAll('.profile-item');
+        const offset = selectedIndex * -260;
+        list.style.transform = `translateX(${offset}px)`;
+        items.forEach((item, idx) => {
+            if(idx === selectedIndex) item.classList.add('selected');
+            else item.classList.remove('selected');
+        });
+    }
+
+    function handleGlobalClick(e) {
+        if (isUnlocked) {
+            if (e.target.closest('.modal-box') || e.target.closest('button') || e.target.closest('.project-link')) return;
+            if (currentSlide < TOTAL_SLIDES) {
+                document.getElementById(`slide${currentSlide}`).classList.remove("active");
+                currentSlide++;
+                setTimeout(() => { document.getElementById(`slide${currentSlide}`).classList.add("active"); }, 1000);
+            }
+            return;
+        }
+
+        if (currentView === 'initial') {
+            document.getElementById("psInitial").style.opacity = "0";
+            setTimeout(() => {
+                document.getElementById("psInitial").style.display = "none";
+                document.getElementById("psLoginScreen").style.display = "flex";
+                document.getElementById("footerControls").style.display = "flex";
+                setTimeout(() => {
+                    document.getElementById("psLoginScreen").style.opacity = "1";
+                    currentView = 'profiles';
+                    updateCarousel();
+                }, 50);
+            }, 800);
+        }
+    }
+
+    function selectProfile() {
+        const profiles = document.querySelectorAll('.profile-item');
+        const selectedItem = profiles[selectedIndex];
+        const rawName = selectedItem.getAttribute('data-name');
+        
+        document.getElementById('displayActiveUser').textContent = rawName;
+        document.getElementById('passUserCircle').innerHTML = selectedItem.querySelector('.profile-circle').innerHTML;
+        document.getElementById('requestPfpBtn').style.display = 'block';
+
+        document.getElementById("psLoginScreen").style.opacity = "0";
+        setTimeout(() => {
+            document.getElementById("psLoginScreen").style.display = "none";
+            document.getElementById("passcodeScreen").style.display = "flex";
+            setTimeout(() => {
+                document.getElementById("passcodeScreen").style.opacity = "1";
+                currentView = 'passcode';
+                passField.focus();
+            }, 50);
+        }, 800);
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (isUnlocked) return;
+        if (e.key === "Escape") { location.reload(); }
+
+        if (currentView === 'profiles') {
+            if (e.key === "ArrowRight") { selectedIndex = (selectedIndex + 1) % TOTAL_USERS; updateCarousel(); }
+            else if (e.key === "ArrowLeft") { selectedIndex = (selectedIndex - 1 + TOTAL_USERS) % TOTAL_USERS; updateCarousel(); }
+            else if (e.key === "Enter") selectProfile();
+        } else if (currentView === 'passcode' && e.key === "Enter") {
+            unlock();
+        }
+    });
+
+    function unlock() {
+        const val = passField.value.trim().toLowerCase();
+        const userDisplay = document.getElementById("userDisplay");
+        const msg = document.getElementById("welcomeMsg");
+
+        if (val === "nightmare") { 
+            applyCursor("https://static.wikia.nocookie.net/freddy-fazbears-pizza/images/7/70/Nightmare_animatronic.png"); 
+            passField.value = ""; return; 
+        }
+
+        if (roles[val]) {
+            isUnlocked = true;
+            document.getElementById("passcodeScreen").style.opacity = "0";
+            document.getElementById("footerControls").style.opacity = "0";
+            
+            if (["idkedmond", "decembr", "xdlol", "timmytuffboy"].includes(val)) {
+                document.getElementById("lapisLink").style.display = "block";
+            }
+
+            setTimeout(() => {
+                document.getElementById("passcodeScreen").style.display = "none";
+                document.getElementById("footerControls").style.display = "none";
+                document.body.classList.replace("initial", "darken");
+                
+                msg.textContent = (val === "098") ? "Bienvenido Diego" : "Welcome " + roles[val];
+                userDisplay.textContent = roles[val];
+                
+                msg.style.opacity = "1";
+                setTimeout(() => {
+                    msg.style.opacity = "0";
+                    setTimeout(() => {
+                        document.getElementById("slide1").classList.add("active");
+                        document.getElementById("instructionText").style.opacity = "1";
+                        userDisplay.style.opacity = "1";
+                        cursorBtn.style.display = "block";
+                        document.getElementById("changelogModal").classList.add("active");
+                    }, 1000);
+                }, 2000);
+            }, 800);
+        } else {
+            document.getElementById("error").textContent = "Incorrect passcode";
+            passField.value = "";
+        }
+    }
+
+    // MODAL & CURSOR HELPERS
+    function closeModals() { document.querySelectorAll('.modal').forEach(m => m.classList.remove('active')); }
+    function openLink(e, url) { e.stopPropagation(); window.open(url, '_blank'); }
+    function setPresetCursor(url) { applyCursor(url); }
+    function applyCursor(url) {
+        star.classList.remove('default-star');
+        star.style.backgroundImage = `url('${url}')`;
+        star.style.width = '60px'; star.style.height = '60px';
+        closeModals();
+    }
+    document.getElementById('cursorUpload').onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => applyCursor(event.target.result);
+            reader.readAsDataURL(file);
+        }
+    };
+    cursorBtn.onclick = (e) => { e.stopPropagation(); document.getElementById("cursorModal").classList.add("active"); };
+
+    function handleBackNavigation(e) {
+        if (!isUnlocked || currentSlide === 1) return;
+        e.preventDefault();
+        document.getElementById(`slide${currentSlide}`).classList.remove("active");
+        currentSlide--;
+        setTimeout(() => { document.getElementById(`slide${currentSlide}`).classList.add("active"); }, 1000);
+    }
+</script>
+</body>
+</html>
